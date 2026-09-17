@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Tenant, mockTenants } from '../types/tenant';
+import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import { type Tenant, mockTenants } from '../types/tenant';
 
 interface TenantContextType {
   currentTenant: Tenant;

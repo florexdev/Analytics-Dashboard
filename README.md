@@ -1,32 +1,22 @@
-# React + TypeScript + Vite
+# Analytics Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React ve TypeScript ile geliştirdiğimiz, birden fazla işletmeyi (multi-tenant) tek bir panelden yönetebildiğimiz yönetim ekranı.
 
-Currently, two official plugins are available:
+## Projede Neler Var?
+- İşletmeler arası hızlı geçiş yapabilme (Tenant sistemi).
+- Grafikler ve veri tablolarıyla detaylı analizler (yakında eklenecek).
+- Excel/CSV formatında veri dışa aktarma (yakında eklenecek).
+- Tamamen custom (Vanilla CSS) ile hazırlanmış karanlık/aydınlık (dark/light) mod destekli arayüz.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Kurulum
+Projeyi bilgisayarında çalıştırmak için:
+1. `npm install` diyerek paketleri yükle.
+2. `npm run dev` diyerek projeyi ayağa kaldır.
 
-## React Compiler
+## Kullanılan Teknolojiler
+- React 18, TypeScript, Vite
+- React Router DOM
+- Recharts
+- Lucide React (ikonlar)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Uygulamanın performansını yüksek tutmak için Virtual Scrolling ve Custom Hooks eklenecektir. Katkıda bulunmak isterseniz branch açıp PR gönderebilirsiniz.
