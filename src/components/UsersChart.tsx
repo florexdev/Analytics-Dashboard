@@ -37,16 +37,24 @@ const mockUsersData = {
 };
 
 export const UsersChart = () => {
-  const { currentTenant } = useTenant();
+  const { currentTenant, isDemo } = useTenant();
   const { t } = useTranslation();
   const [filter, setFilter] = useState('7d');
 
   const data = useMemo(() => {
-    const rawData = mockUsersData[currentTenant.id as keyof typeof mockUsersData] || mockUsersData['t-001'];
-    // Very simple mock filtering
+    if (!isDemo) {
+      const points = filter === '7d' ? 7 : filter === '30d' ? 30 : 90;
+      return Array.from({ length: points }).map((_, i) => ({
+        name: `Day ${i + 1}`,
+        mobile: 0,
+        desktop: 0,
+      }));
+    }
+
+    const rawData = mockUsersData[currentTenant?.id as keyof typeof mockUsersData] || mockUsersData['t-001'];
     if (filter === '30d') return rawData;
     return rawData.slice(Math.max(rawData.length - 5, 0));
-  }, [currentTenant.id, filter]);
+  }, [currentTenant?.id, filter, isDemo]);
 
   return (
     <div className={styles.container}>

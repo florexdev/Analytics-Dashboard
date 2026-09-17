@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DollarSign, Users, Activity, ShoppingCart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
@@ -9,17 +9,32 @@ import { DataTable } from '../components/DataTable';
 import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
-  const { currentTenant } = useTenant();
+  const { currentTenant, isDemo } = useTenant();
   const { t } = useTranslation();
 
-  // Mock data based on the current tenant to show reactivity
-  const kpiData = {
-    't-001': { sales: '$124,500', users: '12,450', uptime: '99.99%', orders: '1,240', trends: [12.5, 4.2, 0.01, -2.4] },
-    't-002': { sales: '$45,200', users: '3,100', uptime: '99.95%', orders: '430', trends: [8.1, -1.2, -0.05, 5.4] },
-    't-003': { sales: '$8,400', users: '450', uptime: '98.50%', orders: '84', trends: [-4.5, 15.2, 0, 1.2] },
-  };
-
-  const currentData = kpiData[currentTenant.id as keyof typeof kpiData] || kpiData['t-001'];
+  const currentData = useMemo(() => {
+    if (!isDemo) {
+      return {
+        revenue: 0,
+        sales: 0,
+        users: 0,
+        uptime: '100%',
+        orders: 0,
+        trends: [0, 0, 0, 0]
+      };
+    }
+    
+    // Mock data for demo mode
+    const kpiData = {
+      revenue: currentTenant?.id === '1' ? 124500 : 84200,
+      sales: currentTenant?.id === '1' ? 1420 : 856,
+      users: currentTenant?.id === '1' ? 12450 : 8200,
+      uptime: '99.9%',
+      orders: currentTenant?.id === '1' ? 342 : 156,
+      trends: [12.5, 8.2, 0.1, -2.4]
+    };
+    return kpiData;
+  }, [currentTenant?.id, isDemo]);
 
   return (
     <div>

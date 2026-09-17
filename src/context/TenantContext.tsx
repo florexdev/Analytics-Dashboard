@@ -16,7 +16,7 @@ export const TenantProvider: React.FC<{ children: ReactNode, isDemo: boolean }> 
   const [tenants, setTenants] = useState<Tenant[]>(() => {
     if (isDemo) return mockTenants;
     
-    const saved = localStorage.getItem('tenants');
+    const saved = localStorage.getItem('tenants_v2');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -30,10 +30,10 @@ export const TenantProvider: React.FC<{ children: ReactNode, isDemo: boolean }> 
   const [currentTenant, setCurrentTenant] = useState<Tenant | null>(() => {
     if (isDemo) return mockTenants[0];
 
-    const savedId = localStorage.getItem('currentTenantId');
+    const savedId = localStorage.getItem('currentTenantId_v2');
     if (savedId) {
       // Find within current loaded tenants (not mock, unless demo)
-      const saved = localStorage.getItem('tenants');
+      const saved = localStorage.getItem('tenants_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         const found = parsed.find((t: Tenant) => t.id === savedId);
@@ -49,11 +49,11 @@ export const TenantProvider: React.FC<{ children: ReactNode, isDemo: boolean }> 
       setTenants(mockTenants);
       setCurrentTenant(mockTenants[0]);
     } else {
-      const saved = localStorage.getItem('tenants');
+      const saved = localStorage.getItem('tenants_v2');
       const loadedTenants = saved ? JSON.parse(saved) : [];
       setTenants(loadedTenants);
       
-      const savedId = localStorage.getItem('currentTenantId');
+      const savedId = localStorage.getItem('currentTenantId_v2');
       if (savedId && loadedTenants.length > 0) {
         setCurrentTenant(loadedTenants.find((t: Tenant) => t.id === savedId) || loadedTenants[0]);
       } else if (loadedTenants.length > 0) {
@@ -67,14 +67,14 @@ export const TenantProvider: React.FC<{ children: ReactNode, isDemo: boolean }> 
   // Save to localStorage whenever tenants change (if not in demo)
   useEffect(() => {
     if (!isDemo) {
-      localStorage.setItem('tenants', JSON.stringify(tenants));
+      localStorage.setItem('tenants_v2', JSON.stringify(tenants));
     }
   }, [tenants, isDemo]);
 
   // Save to localStorage whenever currentTenant changes (if not in demo)
   useEffect(() => {
     if (!isDemo && currentTenant) {
-      localStorage.setItem('currentTenantId', currentTenant.id);
+      localStorage.setItem('currentTenantId_v2', currentTenant.id);
     }
   }, [currentTenant, isDemo]);
 

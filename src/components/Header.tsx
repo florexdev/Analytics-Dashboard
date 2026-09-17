@@ -1,9 +1,15 @@
 import React from 'react';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell, Moon, Sun, Languages } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import styles from './Header.module.css';
 
 export const Header: React.FC = () => {
   const [isDark, setIsDark] = React.useState(false);
+  const { i18n, t } = useTranslation();
+
+  const toggleLanguage = () => {
+    i18n.changeLanguage(i18n.language === 'en' ? 'tr' : 'en');
+  };
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -16,9 +22,13 @@ export const Header: React.FC = () => {
 
   return (
     <header className={styles.header}>
-      <div className={styles.title}>Welcome back, Admin</div>
+      <div className={styles.title}>{t('Welcome back, Admin') || 'Welcome back, Admin'}</div>
       
       <div className={styles.actions}>
+        <button className={styles.iconBtn} onClick={toggleLanguage} aria-label="Toggle Language" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: 600 }}>
+          <Languages size={18} />
+          {i18n.language.toUpperCase()}
+        </button>
         <button className={styles.iconBtn} onClick={toggleTheme} aria-label="Toggle Theme">
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>

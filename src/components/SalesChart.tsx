@@ -37,16 +37,30 @@ const mockSalesData = {
 };
 
 export const SalesChart = () => {
-  const { currentTenant } = useTenant();
+  const { currentTenant, isDemo } = useTenant();
   const { t } = useTranslation();
   const [filter, setFilter] = useState('7d');
 
   const data = useMemo(() => {
-    const rawData = mockSalesData[currentTenant.id as keyof typeof mockSalesData] || mockSalesData['t-001'];
-    // Very simple mock filtering
-    if (filter === '30d') return rawData;
-    return rawData.slice(Math.max(rawData.length - 4, 0));
-  }, [currentTenant.id, filter]);
+    const points = filter === '7d' ? 7 : filter === '30d' ? 30 : 90;
+    
+    if (!isDemo) {
+      return Array.from({ length: points }).map((_, i) => ({
+        name: `Day ${i + 1}`,
+        current: 0,
+        previous: 0,
+      }));
+    }
+
+    const multiplier = currentTenant?.id === '1' ? 10000 : 5000;
+    const base = currentTenant?.id === '1' ? 5000 : 2000;
+    
+    return Array.from({ length: points }).map((_, i) => ({
+      name: `Day ${i + 1}`,
+      current: Math.floor(Math.random() * multiplier) + base,
+      previous: Math.floor(Math.random() * (multiplier / 10)) + (base / 10),
+    }));
+  }, [filter, currentTenant?.id, isDemo]);
 
   return (
     <div className={styles.container}>

@@ -1,22 +1,19 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, Settings, Activity, Building2, Languages } from 'lucide-react';
+import { LayoutDashboard, Settings, Activity, Building2, PlayCircle } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import styles from './Sidebar.module.css';
 
 export const Sidebar: React.FC = () => {
   const { currentTenant, tenants, setTenant } = useTenant();
-  const { t, i18n } = useTranslation();
-
-  const toggleLanguage = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'tr' : 'en');
-  };
+  const { t } = useTranslation();
 
   const navItems = [
     { path: '/', label: t('dashboard'), icon: LayoutDashboard },
     { path: '/logs', label: t('logs'), icon: Activity },
     { path: '/settings', label: t('settings'), icon: Settings },
+    { path: '/demo', label: 'View Demo', icon: PlayCircle },
   ];
 
   return (
@@ -54,15 +51,6 @@ export const Sidebar: React.FC = () => {
         </select>
       </div>
 
-      <div style={{ marginTop: 'auto', paddingTop: '24px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'center' }}>
-        <button 
-          onClick={toggleLanguage}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', cursor: 'pointer' }}
-        >
-          <Languages size={16} />
-          {i18n.language.toUpperCase()}
-        </button>
-      </div>
     </aside>
   );
 };

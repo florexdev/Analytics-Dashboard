@@ -35,10 +35,12 @@ export const DataTable: React.FC = () => {
   const [rawData, setRawData] = useState<Order[]>(() => {
     if (isDemo || !currentTenant) return generateMockData(currentTenant?.id || 'demo');
     
-    const saved = localStorage.getItem(`orders_${currentTenant.id}`);
+    const saved = localStorage.getItem(`orders_v2_${currentTenant.id}`);
     if (saved) return JSON.parse(saved);
-    const initial = generateMockData(currentTenant.id);
-    localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(initial));
+    
+    // Non-demo new tenant should start with an empty array, not mock data
+    const initial: Order[] = [];
+    localStorage.setItem(`orders_v2_${currentTenant.id}`, JSON.stringify(initial));
     return initial;
   });
 
@@ -49,12 +51,12 @@ export const DataTable: React.FC = () => {
       return;
     }
 
-    const saved = localStorage.getItem(`orders_${currentTenant.id}`);
+    const saved = localStorage.getItem(`orders_v2_${currentTenant.id}`);
     if (saved) {
       setRawData(JSON.parse(saved));
     } else {
-      const initial = generateMockData(currentTenant.id);
-      localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(initial));
+      const initial: Order[] = [];
+      localStorage.setItem(`orders_v2_${currentTenant.id}`, JSON.stringify(initial));
       setRawData(initial);
     }
   }, [currentTenant?.id, isDemo]);
@@ -140,7 +142,7 @@ export const DataTable: React.FC = () => {
     setRawData(updated);
     
     if (!isDemo) {
-      localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(updated));
+      localStorage.setItem(`orders_v2_${currentTenant.id}`, JSON.stringify(updated));
     }
     
     setNewCustomer('');
