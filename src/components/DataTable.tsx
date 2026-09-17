@@ -1,6 +1,7 @@
 import React, { useRef, useState, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronsUpDown, Search, Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { useTenant } from '../context/TenantContext';
 import styles from './DataTable.module.css';
 
@@ -91,6 +92,13 @@ export const DataTable: React.FC = () => {
     return sortConfig.direction === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
   };
 
+  const handleExport = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredAndSortedData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+    XLSX.writeFile(workbook, `Transactions_${currentTenant.id}.xlsx`);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -112,6 +120,10 @@ export const DataTable: React.FC = () => {
               style={{ paddingLeft: 32 }}
             />
           </div>
+          <button className={styles.exportBtn} onClick={handleExport}>
+            <Download size={16} />
+            Export
+          </button>
         </div>
       </div>
 
