@@ -11,7 +11,7 @@ interface KPICardProps {
   iconBgColor?: string;
 }
 
-export const KPICard: React.FC<KPICardProps> = ({ 
+export const KPICard: React.FC<KPICardProps> = React.memo(({ 
   title, 
   value, 
   trend, 
@@ -38,4 +38,4 @@ export const KPICard: React.FC<KPICardProps> = ({
       </div>
     </div>
   );
-};
+});
