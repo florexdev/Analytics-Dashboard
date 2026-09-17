@@ -2,6 +2,8 @@ import React from 'react';
 import { DollarSign, Users, Activity, ShoppingCart } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { KPICard } from '../components/KPICard';
+import { SalesChart } from '../components/SalesChart';
+import { UsersChart } from '../components/UsersChart';
 import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
@@ -56,6 +58,11 @@ export const Dashboard: React.FC = () => {
           iconColor="#8b5cf6" 
           iconBgColor="rgba(139, 92, 246, 0.1)" 
         />
+      </div>
+
+      <div className={styles.chartsGrid}>
+        <SalesChart />
+        <UsersChart />
       </div>
     </div>
   );
