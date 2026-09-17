@@ -1,11 +1,11 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronUp, ChevronsUpDown, Search, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, ChevronsUpDown, Search, Download, Plus } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useTenant } from '../context/TenantContext';
 import styles from './DataTable.module.css';
 
-interface Order {
+export interface Order {
   id: string;
   customer: string;
   amount: number;
@@ -15,8 +15,8 @@ interface Order {
 
 const generateMockData = (tenantId: string): Order[] => {
   const statuses: Order['status'][] = ['Completed', 'Pending', 'Failed'];
-  return Array.from({ length: 10000 }).map((_, index) => ({
-    id: `ORD-${tenantId}-${10000 + index}`,
+  return Array.from({ length: 50 }).map((_, index) => ({
+    id: `ORD-${tenantId}-${100 + index}`,
     customer: `Customer ${index + 1}`,
     amount: Number((Math.random() * 500 + 10).toFixed(2)),
     status: statuses[Math.floor(Math.random() * statuses.length)],
@@ -24,27 +24,44 @@ const generateMockData = (tenantId: string): Order[] => {
   }));
 };
 
-const mockCache: Record<string, Order[]> = {};
-const getTenantData = (id: string) => {
-  if (!mockCache[id]) {
-    mockCache[id] = generateMockData(id);
-  }
-  return mockCache[id];
-};
-
 type SortConfig = { key: keyof Order; direction: 'asc' | 'desc' } | null;
 
 export const DataTable: React.FC = () => {
   const { currentTenant } = useTenant();
-  const rawData = getTenantData(currentTenant.id);
   
+  // Load data from localStorage
+  const [rawData, setRawData] = useState<Order[]>(() => {
+    const saved = localStorage.getItem(`orders_${currentTenant.id}`);
+    if (saved) return JSON.parse(saved);
+    const initial = generateMockData(currentTenant.id);
+    localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(initial));
+    return initial;
+  });
+
+  // Re-load when tenant changes
+  useEffect(() => {
+    const saved = localStorage.getItem(`orders_${currentTenant.id}`);
+    if (saved) {
+      setRawData(JSON.parse(saved));
+    } else {
+      const initial = generateMockData(currentTenant.id);
+      localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(initial));
+      setRawData(initial);
+    }
+  }, [currentTenant.id]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+
+  // New order form state
+  const [showForm, setShowForm] = useState(false);
+  const [newCustomer, setNewCustomer] = useState('');
+  const [newAmount, setNewAmount] = useState('');
+  const [newStatus, setNewStatus] = useState<'Completed' | 'Pending' | 'Failed'>('Completed');
 
   const filteredAndSortedData = useMemo(() => {
     let result = rawData;
 
-    // Filter
     if (searchTerm) {
       const lowercasedTerm = searchTerm.toLowerCase();
       result = result.filter(
@@ -54,7 +71,6 @@ export const DataTable: React.FC = () => {
       );
     }
 
-    // Sort
     if (sortConfig !== null) {
       result = [...result].sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
@@ -99,6 +115,27 @@ export const DataTable: React.FC = () => {
     XLSX.writeFile(workbook, `Transactions_${currentTenant.id}.xlsx`);
   };
 
+  const handleAddOrder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomer.trim() || !newAmount) return;
+
+    const newOrder: Order = {
+      id: `ORD-${currentTenant.id}-${Date.now().toString().slice(-4)}`,
+      customer: newCustomer,
+      amount: parseFloat(newAmount),
+      status: newStatus,
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    const updated = [newOrder, ...rawData];
+    setRawData(updated);
+    localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(updated));
+    
+    setNewCustomer('');
+    setNewAmount('');
+    setShowForm(false);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -108,6 +145,7 @@ export const DataTable: React.FC = () => {
             Showing {filteredAndSortedData.length.toLocaleString()} records
           </span>
         </div>
+        
         <div className={styles.controls}>
           <div style={{ position: 'relative' }}>
             <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
@@ -120,12 +158,41 @@ export const DataTable: React.FC = () => {
               style={{ paddingLeft: 32 }}
             />
           </div>
+          
+          <button className={styles.exportBtn} onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#10b981' }}>
+            <Plus size={16} />
+            New Order
+          </button>
+
           <button className={styles.exportBtn} onClick={handleExport}>
             <Download size={16} />
             Export
           </button>
         </div>
       </div>
+
+      {showForm && (
+        <form onSubmit={handleAddOrder} style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap', backgroundColor: 'var(--bg-primary)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '0.85rem' }}>Customer</label>
+            <input className={styles.searchInput} value={newCustomer} onChange={e => setNewCustomer(e.target.value)} required />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '0.85rem' }}>Amount ($)</label>
+            <input className={styles.searchInput} type="number" step="0.01" value={newAmount} onChange={e => setNewAmount(e.target.value)} required />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '0.85rem' }}>Status</label>
+            <select className={styles.searchInput} value={newStatus} onChange={e => setNewStatus(e.target.value as any)}>
+              <option value="Completed">Completed</option>
+              <option value="Pending">Pending</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+          <button type="submit" className={styles.exportBtn} style={{ backgroundColor: '#10b981' }}>Save</button>
+          <button type="button" onClick={() => setShowForm(false)} className={styles.exportBtn} style={{ backgroundColor: 'var(--text-secondary)' }}>Cancel</button>
+        </form>
+      )}
 
       <div ref={parentRef} className={styles.tableWrapper}>
         <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}>
