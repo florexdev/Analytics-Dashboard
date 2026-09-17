@@ -4,6 +4,7 @@ import { useTenant } from '../context/TenantContext';
 import { KPICard } from '../components/KPICard';
 import { SalesChart } from '../components/SalesChart';
 import { UsersChart } from '../components/UsersChart';
+import { DataTable } from '../components/DataTable';
 import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
@@ -64,6 +65,8 @@ export const Dashboard: React.FC = () => {
         <SalesChart />
         <UsersChart />
       </div>
+
+      <DataTable />
     </div>
   );
 };
