@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Terminal, Activity, Server, Database } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import styles from './Logs.module.css';
 
@@ -23,6 +24,7 @@ const mockMessages = [
 
 export const Logs: React.FC = () => {
   const { currentTenant } = useTenant();
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -65,23 +67,23 @@ export const Logs: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>System Health & Logs</h1>
-        <p className={styles.subtitle}>Real-time infrastructure monitoring for {currentTenant.name}.</p>
+        <h1 className={styles.title}>{t('system_health')}</h1>
+        <p className={styles.subtitle}>{t('system_health_desc', { name: currentTenant?.name })}</p>
       </div>
 
       <div className={styles.metricsGrid}>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Server Load</span>
+          <span className={styles.metricLabel}>{t('server_load')}</span>
           <span className={styles.metricValue}>24%</span>
           <span className={`${styles.metricStatus} ${styles.statusGood}`}><Server size={14} /> Normal</span>
         </div>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Database Latency</span>
+          <span className={styles.metricLabel}>{t('db_latency')}</span>
           <span className={styles.metricValue}>12ms</span>
           <span className={`${styles.metricStatus} ${styles.statusGood}`}><Database size={14} /> Optimal</span>
         </div>
         <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Error Rate</span>
+          <span className={styles.metricLabel}>{t('error_rate')}</span>
           <span className={styles.metricValue}>0.14%</span>
           <span className={`${styles.metricStatus} ${styles.statusWarn}`}><Activity size={14} /> Monitoring</span>
         </div>
@@ -95,7 +97,7 @@ export const Logs: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '0.85rem' }}>
             <div className={styles.liveIndicator}></div>
-            Live
+            {t('live')}
           </div>
         </div>
         <div className={styles.logBody} ref={scrollRef}>

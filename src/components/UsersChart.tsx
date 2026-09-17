@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import styles from './ChartCard.module.css';
 
@@ -37,6 +38,7 @@ const mockUsersData = {
 
 export const UsersChart = () => {
   const { currentTenant } = useTenant();
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('7d');
 
   const data = useMemo(() => {
@@ -49,7 +51,7 @@ export const UsersChart = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>User Sessions</h3>
+        <h3 className={styles.title}>{t('user_sessions')}</h3>
         <select 
           className={styles.filterSelect}
           value={filter}

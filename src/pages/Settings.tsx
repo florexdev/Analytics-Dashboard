@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import styles from './Settings.module.css';
 
 export const Settings: React.FC = () => {
   const { currentTenant, updateTenant, addTenant } = useTenant();
+  const { t } = useTranslation();
   
   // State for updating current tenant
   const [editName, setEditName] = useState(currentTenant.name);
@@ -49,15 +51,15 @@ export const Settings: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Tenant Settings</h1>
-        <p className={styles.subtitle}>Manage configuration and preferences for {currentTenant.name}.</p>
+        <h1 className={styles.title}>{t('tenant_settings')}</h1>
+        <p className={styles.subtitle}>{t('tenant_settings_desc', { name: currentTenant?.name })}</p>
       </div>
 
       <form className={styles.card} onSubmit={handleUpdate}>
-        <h2 className={styles.cardTitle}>Update Current Tenant</h2>
+        <h2 className={styles.cardTitle}>{t('general_info')}</h2>
         
         <div className={styles.formGroup}>
-          <label className={styles.label}>Tenant Name</label>
+          <label className={styles.label}>{t('tenant_name')}</label>
           <input 
             type="text" 
             className={styles.input} 
@@ -68,18 +70,18 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Tenant ID (Read Only)</label>
+          <label className={styles.label}>{t('tenant_id')}</label>
           <input 
             type="text" 
             className={styles.input} 
-            value={currentTenant.id} 
+            value={currentTenant?.id} 
             disabled 
             style={{ opacity: 0.7, cursor: 'not-allowed' }} 
           />
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Subscription Plan</label>
+          <label className={styles.label}>{t('subscription_plan')}</label>
           <select 
             className={styles.input} 
             value={editPlan}
@@ -91,14 +93,14 @@ export const Settings: React.FC = () => {
           </select>
         </div>
 
-        <button type="submit" className={styles.saveBtn}>Save Changes</button>
+        <button type="submit" className={styles.saveBtn}>{t('save_changes')}</button>
       </form>
 
       <form className={styles.card} onSubmit={handleAdd}>
-        <h2 className={styles.cardTitle}>Add New Tenant</h2>
+        <h2 className={styles.cardTitle}>{t('add_new_tenant')}</h2>
         
         <div className={styles.formGroup}>
-          <label className={styles.label}>New Tenant Name</label>
+          <label className={styles.label}>{t('new_tenant_name')}</label>
           <input 
             type="text" 
             className={styles.input} 
@@ -110,7 +112,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Subscription Plan</label>
+          <label className={styles.label}>{t('subscription_plan')}</label>
           <select 
             className={styles.input} 
             value={newPlan}
@@ -123,7 +125,7 @@ export const Settings: React.FC = () => {
         </div>
 
         <button type="submit" className={styles.saveBtn} style={{ backgroundColor: '#10b981' }}>
-          Create Tenant
+          {t('create_tenant')}
         </button>
       </form>
     </div>

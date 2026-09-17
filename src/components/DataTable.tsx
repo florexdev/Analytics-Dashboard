@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDown, ChevronUp, ChevronsUpDown, Search, Download, Plus } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import styles from './DataTable.module.css';
 
@@ -27,10 +28,13 @@ const generateMockData = (tenantId: string): Order[] => {
 type SortConfig = { key: keyof Order; direction: 'asc' | 'desc' } | null;
 
 export const DataTable: React.FC = () => {
-  const { currentTenant } = useTenant();
+  const { currentTenant, isDemo } = useTenant();
+  const { t } = useTranslation();
   
-  // Load data from localStorage
+  // Load data from localStorage or mock
   const [rawData, setRawData] = useState<Order[]>(() => {
+    if (isDemo || !currentTenant) return generateMockData(currentTenant?.id || 'demo');
+    
     const saved = localStorage.getItem(`orders_${currentTenant.id}`);
     if (saved) return JSON.parse(saved);
     const initial = generateMockData(currentTenant.id);
@@ -38,8 +42,13 @@ export const DataTable: React.FC = () => {
     return initial;
   });
 
-  // Re-load when tenant changes
+  // Re-load when tenant or mode changes
   useEffect(() => {
+    if (isDemo || !currentTenant) {
+      setRawData(generateMockData(currentTenant?.id || 'demo'));
+      return;
+    }
+
     const saved = localStorage.getItem(`orders_${currentTenant.id}`);
     if (saved) {
       setRawData(JSON.parse(saved));
@@ -48,7 +57,7 @@ export const DataTable: React.FC = () => {
       localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(initial));
       setRawData(initial);
     }
-  }, [currentTenant.id]);
+  }, [currentTenant?.id, isDemo]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
@@ -117,7 +126,7 @@ export const DataTable: React.FC = () => {
 
   const handleAddOrder = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCustomer.trim() || !newAmount) return;
+    if (!newCustomer.trim() || !newAmount || !currentTenant) return;
 
     const newOrder: Order = {
       id: `ORD-${currentTenant.id}-${Date.now().toString().slice(-4)}`,
@@ -129,7 +138,10 @@ export const DataTable: React.FC = () => {
 
     const updated = [newOrder, ...rawData];
     setRawData(updated);
-    localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(updated));
+    
+    if (!isDemo) {
+      localStorage.setItem(`orders_${currentTenant.id}`, JSON.stringify(updated));
+    }
     
     setNewCustomer('');
     setNewAmount('');
@@ -140,9 +152,9 @@ export const DataTable: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h3 className={styles.title}>Recent Transactions</h3>
+          <h3 className={styles.title}>{t('recent_transactions')}</h3>
           <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Showing {filteredAndSortedData.length.toLocaleString()} records
+            {t('showing_records', { count: filteredAndSortedData.length.toLocaleString() })}
           </span>
         </div>
         
@@ -151,7 +163,7 @@ export const DataTable: React.FC = () => {
             <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             <input 
               type="text" 
-              placeholder="Search by customer or order..." 
+              placeholder={t('search_placeholder')} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -161,12 +173,12 @@ export const DataTable: React.FC = () => {
           
           <button className={styles.exportBtn} onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#10b981' }}>
             <Plus size={16} />
-            New Order
+            {t('new_order')}
           </button>
 
           <button className={styles.exportBtn} onClick={handleExport}>
             <Download size={16} />
-            Export
+            {t('export')}
           </button>
         </div>
       </div>

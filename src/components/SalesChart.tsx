@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import styles from './ChartCard.module.css';
 
@@ -37,6 +38,7 @@ const mockSalesData = {
 
 export const SalesChart = () => {
   const { currentTenant } = useTenant();
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('7d');
 
   const data = useMemo(() => {
@@ -49,7 +51,7 @@ export const SalesChart = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Revenue Overview</h3>
+        <h3 className={styles.title}>{t('revenue_overview')}</h3>
         <select 
           className={styles.filterSelect}
           value={filter}

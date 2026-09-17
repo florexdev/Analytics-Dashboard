@@ -1,5 +1,6 @@
 import React from 'react';
 import { DollarSign, Users, Activity, ShoppingCart } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useTenant } from '../context/TenantContext';
 import { KPICard } from '../components/KPICard';
 import { SalesChart } from '../components/SalesChart';
@@ -9,6 +10,7 @@ import styles from './Dashboard.module.css';
 
 export const Dashboard: React.FC = () => {
   const { currentTenant } = useTenant();
+  const { t } = useTranslation();
 
   // Mock data based on the current tenant to show reactivity
   const kpiData = {
@@ -22,13 +24,13 @@ export const Dashboard: React.FC = () => {
   return (
     <div>
       <div className={styles.dashboardHeader}>
-        <h1 className={styles.title}>Dashboard Overview</h1>
-        <p className={styles.subtitle}>Welcome back. Here's what's happening with {currentTenant.name} today.</p>
+        <h1 className={styles.title}>{t('Dashboard Overview')}</h1>
+        <p className={styles.subtitle}>{t("Welcome back. Here's what's happening with {{name}} today.", { name: currentTenant.name })}</p>
       </div>
 
       <div className={styles.grid}>
         <KPICard 
-          title="Total Sales" 
+          title={t('Total Sales')} 
           value={currentData.sales} 
           trend={currentData.trends[0]} 
           icon={DollarSign} 
@@ -36,7 +38,7 @@ export const Dashboard: React.FC = () => {
           iconBgColor="rgba(16, 185, 129, 0.1)" 
         />
         <KPICard 
-          title="Active Users" 
+          title={t('Active Users')} 
           value={currentData.users} 
           trend={currentData.trends[1]} 
           icon={Users} 
@@ -44,7 +46,7 @@ export const Dashboard: React.FC = () => {
           iconBgColor="rgba(59, 130, 246, 0.1)" 
         />
         <KPICard 
-          title="Total Orders" 
+          title={t('Total Orders')} 
           value={currentData.orders} 
           trend={currentData.trends[3]} 
           icon={ShoppingCart} 
@@ -52,7 +54,7 @@ export const Dashboard: React.FC = () => {
           iconBgColor="rgba(245, 158, 11, 0.1)" 
         />
         <KPICard 
-          title="System Uptime" 
+          title={t('System Uptime')} 
           value={currentData.uptime} 
           trend={currentData.trends[2]} 
           icon={Activity} 

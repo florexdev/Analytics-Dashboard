@@ -2,48 +2,81 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import { type Tenant, mockTenants } from '../types/tenant';
 
 interface TenantContextType {
-  currentTenant: Tenant;
+  currentTenant: Tenant | null;
   tenants: Tenant[];
   setTenant: (id: string) => void;
   addTenant: (tenant: Tenant) => void;
   updateTenant: (tenant: Tenant) => void;
+  isDemo: boolean;
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
-export const TenantProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Load tenants from localStorage or fallback to mockTenants
+export const TenantProvider: React.FC<{ children: ReactNode, isDemo: boolean }> = ({ children, isDemo }) => {
   const [tenants, setTenants] = useState<Tenant[]>(() => {
+    if (isDemo) return mockTenants;
+    
     const saved = localStorage.getItem('tenants');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return mockTenants;
+        return [];
       }
     }
-    return mockTenants;
+    return []; // Empty start for HR
   });
 
-  // Load current tenant ID from localStorage or fallback to first tenant
-  const [currentTenant, setCurrentTenant] = useState<Tenant>(() => {
+  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(() => {
+    if (isDemo) return mockTenants[0];
+
     const savedId = localStorage.getItem('currentTenantId');
     if (savedId) {
-      const found = tenants.find(t => t.id === savedId);
-      if (found) return found;
+      // Find within current loaded tenants (not mock, unless demo)
+      const saved = localStorage.getItem('tenants');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const found = parsed.find((t: Tenant) => t.id === savedId);
+        if (found) return found;
+      }
     }
-    return tenants[0];
+    return null;
   });
 
-  // Save to localStorage whenever tenants change
+  // Re-sync on isDemo change
   useEffect(() => {
-    localStorage.setItem('tenants', JSON.stringify(tenants));
-  }, [tenants]);
+    if (isDemo) {
+      setTenants(mockTenants);
+      setCurrentTenant(mockTenants[0]);
+    } else {
+      const saved = localStorage.getItem('tenants');
+      const loadedTenants = saved ? JSON.parse(saved) : [];
+      setTenants(loadedTenants);
+      
+      const savedId = localStorage.getItem('currentTenantId');
+      if (savedId && loadedTenants.length > 0) {
+        setCurrentTenant(loadedTenants.find((t: Tenant) => t.id === savedId) || loadedTenants[0]);
+      } else if (loadedTenants.length > 0) {
+        setCurrentTenant(loadedTenants[0]);
+      } else {
+        setCurrentTenant(null);
+      }
+    }
+  }, [isDemo]);
 
-  // Save to localStorage whenever currentTenant changes
+  // Save to localStorage whenever tenants change (if not in demo)
   useEffect(() => {
-    localStorage.setItem('currentTenantId', currentTenant.id);
-  }, [currentTenant]);
+    if (!isDemo) {
+      localStorage.setItem('tenants', JSON.stringify(tenants));
+    }
+  }, [tenants, isDemo]);
+
+  // Save to localStorage whenever currentTenant changes (if not in demo)
+  useEffect(() => {
+    if (!isDemo && currentTenant) {
+      localStorage.setItem('currentTenantId', currentTenant.id);
+    }
+  }, [currentTenant, isDemo]);
 
   const setTenant = (id: string) => {
     const tenant = tenants.find((t) => t.id === id);
@@ -59,13 +92,13 @@ export const TenantProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const updateTenant = (updatedTenant: Tenant) => {
     setTenants(prev => prev.map(t => t.id === updatedTenant.id ? updatedTenant : t));
-    if (currentTenant.id === updatedTenant.id) {
+    if (currentTenant?.id === updatedTenant.id) {
       setCurrentTenant(updatedTenant);
     }
   };
 
   return (
-    <TenantContext.Provider value={{ currentTenant, tenants, setTenant, addTenant, updateTenant }}>
+    <TenantContext.Provider value={{ currentTenant, tenants, setTenant, addTenant, updateTenant, isDemo }}>
       {children}
     </TenantContext.Provider>
   );
