@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import styles from './DataTable.module.css';
 
@@ -11,7 +12,6 @@ interface Order {
   date: string;
 }
 
-// Generate a large mock dataset (10,000 items) to demonstrate virtual scrolling
 const generateMockData = (tenantId: string): Order[] => {
   const statuses: Order['status'][] = ['Completed', 'Pending', 'Failed'];
   return Array.from({ length: 10000 }).map((_, index) => ({
@@ -31,26 +31,88 @@ const getTenantData = (id: string) => {
   return mockCache[id];
 };
 
+type SortConfig = { key: keyof Order; direction: 'asc' | 'desc' } | null;
+
 export const DataTable: React.FC = () => {
   const { currentTenant } = useTenant();
-  const data = getTenantData(currentTenant.id);
+  const rawData = getTenantData(currentTenant.id);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<SortConfig>(null);
+
+  const filteredAndSortedData = useMemo(() => {
+    let result = rawData;
+
+    // Filter
+    if (searchTerm) {
+      const lowercasedTerm = searchTerm.toLowerCase();
+      result = result.filter(
+        item => 
+          item.customer.toLowerCase().includes(lowercasedTerm) || 
+          item.id.toLowerCase().includes(lowercasedTerm)
+      );
+    }
+
+    // Sort
+    if (sortConfig !== null) {
+      result = [...result].sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [rawData, searchTerm, sortConfig]);
   
   const parentRef = useRef<HTMLDivElement>(null);
   
   const rowVirtualizer = useVirtualizer({
-    count: data.length,
+    count: filteredAndSortedData.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 52, // estimated row height in px
+    estimateSize: () => 52,
     overscan: 5,
   });
+
+  const handleSort = (key: keyof Order) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key: keyof Order) => {
+    if (!sortConfig || sortConfig.key !== key) return <ChevronsUpDown size={14} />;
+    return sortConfig.direction === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />;
+  };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Recent Transactions</h3>
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          Showing {data.length.toLocaleString()} records via Virtual Scrolling
-        </span>
+        <div>
+          <h3 className={styles.title}>Recent Transactions</h3>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+            Showing {filteredAndSortedData.length.toLocaleString()} records
+          </span>
+        </div>
+        <div className={styles.controls}>
+          <div style={{ position: 'relative' }}>
+            <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+            <input 
+              type="text" 
+              placeholder="Search by customer or order..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+              style={{ paddingLeft: 32 }}
+            />
+          </div>
+        </div>
       </div>
 
       <div ref={parentRef} className={styles.tableWrapper}>
@@ -59,17 +121,27 @@ export const DataTable: React.FC = () => {
           <table className={styles.table} style={{ position: 'absolute', top: 0, left: 0, width: '100%' }}>
             <thead className={styles.thead}>
               <tr>
-                <th className={styles.th}>Order ID</th>
-                <th className={styles.th}>Customer</th>
-                <th className={styles.th}>Date</th>
-                <th className={styles.th}>Amount</th>
-                <th className={styles.th}>Status</th>
+                <th className={styles.th} onClick={() => handleSort('id')}>
+                  <div className={styles.thContent}>Order ID {getSortIcon('id')}</div>
+                </th>
+                <th className={styles.th} onClick={() => handleSort('customer')}>
+                  <div className={styles.thContent}>Customer {getSortIcon('customer')}</div>
+                </th>
+                <th className={styles.th} onClick={() => handleSort('date')}>
+                  <div className={styles.thContent}>Date {getSortIcon('date')}</div>
+                </th>
+                <th className={styles.th} onClick={() => handleSort('amount')}>
+                  <div className={styles.thContent}>Amount {getSortIcon('amount')}</div>
+                </th>
+                <th className={styles.th} onClick={() => handleSort('status')}>
+                  <div className={styles.thContent}>Status {getSortIcon('status')}</div>
+                </th>
               </tr>
             </thead>
             
             <tbody style={{ transform: `translateY(${rowVirtualizer.getVirtualItems()[0]?.start || 0}px)` }}>
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const item = data[virtualRow.index];
+                const item = filteredAndSortedData[virtualRow.index];
                 return (
                   <tr key={virtualRow.key} className={styles.tr} style={{ height: `${virtualRow.size}px` }}>
                     <td className={styles.td}>{item.id}</td>
@@ -84,6 +156,13 @@ export const DataTable: React.FC = () => {
                   </tr>
                 );
               })}
+              {filteredAndSortedData.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: 'var(--text-secondary)' }}>
+                    No records found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
           
